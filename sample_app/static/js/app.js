@@ -1,6 +1,10 @@
 var signinLink = document.getElementById('signin');
+var signoutLink = document.getElementById('signout');
 
-if (signinLink) {
-  signinLink.onclick = function() { navigator.id.request(); };
+signinLink.onclick = function() {
+  navigator.id.request();
 };
  
+signoutLink.onclick = function() {
+  navigator.id.logout();
+};
