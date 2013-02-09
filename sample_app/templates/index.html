@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
-
 {% block content %}
-<h1>Hola</h1>
+	<h1>MozTanta App</h1>
+{% if user.is_authenticated %} 
+	{{ user.email }}
+{% else %} 
+	<a href="#" id="signin" class="persona-button dark"><span>Sign in with your Email</span></a>
+{% endif %}
+
 {% endblock %}

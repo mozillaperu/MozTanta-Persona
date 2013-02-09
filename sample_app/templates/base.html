@@ -3,10 +3,16 @@
 <head>
 <meta charset="utf-8"/>
 {% block title %}{% endblock %}
+<title>MozTanta</title>
+<link rel="stylesheet" type="text/css" href="./static/css/persona-css-buttons/persona-buttons.css" />
+<link rel="stylesheet" type="text/css" href="./static/css/app.css" />
 {% block extra_head %}{% endblock %}
 </head>
 <body>
 {% block content %}{% endblock %}
 {% block scripts %}{% endblock %}
+<!-- js -->
+<script src="https://login.persona.org/include.js"></script>
+<script src="./static/js/app.js"></script>
 </body>
 </html>
