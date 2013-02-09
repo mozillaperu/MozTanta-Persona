@@ -3,7 +3,8 @@ from django.conf.urls import patterns, include, url
 
 
 urlpatterns = patterns('',
-    url(r'^', include('myapp.urls'))
+    url(r'^', include('myapp.urls')),
+    url(r'^', include('browserid.urls')),
 )
 
 from django.conf.urls.static import static
