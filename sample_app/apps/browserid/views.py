@@ -4,10 +4,14 @@ from urllib.parse import urlencode
 from urllib.error import URLError
 
 from django.http import HttpResponse
+from django.http import HttpResponseRedirect
 from django.http import HttpResponseBadRequest
+from django.core.urlresolvers import reverse
 from django.views.generic import View
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
+from django.contrib.auth import login
+
 from browserid import settings as browserid_settings
 from browserid.models import Nonce
 
@@ -15,7 +19,7 @@ class HttpResponseConflict(HttpResponse):
     status = 409
 
 
-class StatusView(View):
+class CommonView(View):
 
     ASSERTION_KEY = 'assertion'
 
@@ -25,6 +29,9 @@ class StatusView(View):
 
     def get_assertion(self):
         return self.request.POST[self.ASSERTION_KEY]
+
+
+class StatusView(CommonView):
 
     def format_audience(self):
         site = Site.objects.get_current()
@@ -126,3 +133,31 @@ class StatusView(View):
                 return self.nonce_error(data)
         else:
             return self.error_response(data)
+
+
+class LoginView(CommonView):
+
+    def redirect_home(self):
+        homepage = resolve('homepage')
+        return HttpResponseRedirect(homepage)
+
+    def get_nonce(self, assertion):
+        return Nonce.objects.get(assertion=assertion)
+
+    def start_session_from_nonce(self, nonce):
+        login(self.request, nonce.user)
+
+    # HTTP Verb handlers
+
+    def post(self, request):
+
+        if self.has_assertion():       
+            assertion = self.get_assertion()
+
+            try:
+                nonce = self.get_nonce(assertion)
+                self.start_session_from_nonce()
+            except Nonce.DoesNotExist:
+                pass
+
+        return self.redirect_home()
