@@ -102,6 +102,12 @@ class StatusView(View):
         }
         return self.error_response(aux)
 
+    def successful_response(self, data):
+        return HttpResponse(
+            dumps(data, indent=4),
+            content_type='application/json'
+        )        
+
     # HTTP Verb handlers
 
     def post(self, request):
@@ -115,6 +121,7 @@ class StatusView(View):
         if self.verification_was_successful(data):
             try:
                 self.create_nonce(data)
+                return self.successful_response(data)
             except User.DoesNotExist:
                 return self.nonce_error(data)
         else:
