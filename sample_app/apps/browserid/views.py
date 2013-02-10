@@ -13,6 +13,7 @@ from django.views.generic import View
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 from django.contrib.auth import login
+from django.conf import settings
 
 from browserid import settings as browserid_settings
 from browserid.models import Nonce
@@ -32,10 +33,30 @@ class StatusView(View):
     def get_assertion(self):
         return self.request.POST[self.ASSERTION_KEY]
 
+    def get_domain(self):
+        domain = getattr(settings, 'SITE_DOMAIN', None)
+        if domain is None:
+            try:
+                domain = Site.objects.get_current()
+            except Site.DoesNotExist:
+                domain = self.request.META['SERVER_NAME']
+        return domain
+
     def format_audience(self):
-        site = Site.objects.get_current()
-        protocol = 'https' if request.is_secure() else 'http'
-        return '%s://%s' % (protocol, site.domain)
+        #site = Site.objects.get_current()
+        protocol = 'https' if self.request.is_secure() else 'http'
+        result = '{protocol}://{domain}'.format(
+            protocol=protocol, 
+            domain=self.get_domain()
+        )
+        if self.request.META['SERVER_PORT'] != '80':
+            result = '{result}:{port}'.format(
+                result=result,
+                port=self.request.META['SERVER_PORT']
+            )
+
+        print(result)
+        return result
 
     def bad_request(self):
         data = {
@@ -57,7 +78,7 @@ class StatusView(View):
 
         try:
             response = urlopen(
-                verifier_url, 
+                self.get_verifier_url(), 
                 data=urlencode(data).encode('utf8')
             )
 
@@ -91,8 +112,8 @@ class StatusView(View):
         c = RequestContext(self.request, data)
         return HttpResponseConflict(t.render(c))
 
-    def create_nonce(self, data):
-        user = User.objects.get(email=email)
+    def create_nonce(self, assertion, data):
+        user = User.objects.get(email=data['email'])
         nonce = Nonce(user=user, assertion=assertion)
         nonce.save()
         return nonce
@@ -100,9 +121,9 @@ class StatusView(View):
     def nonce_error(self, data):
         aux = {
             "status": "failed",
-            "reason": "No registered used with email {email}".assertion({
-                "email": data['email']
-            })
+            "reason": "No registered user with email {email}".format(
+                email=data['email']
+            )
         }
         return self.error_response(aux)
 
@@ -112,6 +133,10 @@ class StatusView(View):
 
     def start_session_from_nonce(self, nonce):
         login(self.request, nonce.user)
+
+    def start_session_from_email(self, email):
+        user = User.objects.get(email=email)
+        login(self.request, user)
 
     # HTTP Verb handlers
 
@@ -125,8 +150,11 @@ class StatusView(View):
 
         if self.verification_was_successful(data):
             try:
-                self.create_nonce(data)
-                self.start_session_from_nonce()
+                if browserid_settings.CREATE_NONCE:
+                    nonce = self.create_nonce(assertion, data)
+                    self.start_session_from_nonce(nonce)
+                else:
+                    self.start_session_from_email(data['email'])
                 self.redirect_home()
             except User.DoesNotExist:
                 return self.nonce_error(data)

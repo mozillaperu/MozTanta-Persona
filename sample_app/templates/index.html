@@ -4,9 +4,26 @@
 	<h1>MozTanta App</h1>
 {% if user.is_authenticated %} 
 	{{ user.email }}
-	<a href="#" id="signout" class="persona-button dark"><span>Sign out</span></a>	
+	<a href="{% url 'logout' %}" id="signout" class="persona-button dark"><span>Sign out</span></a>	
 {% else %} 
-	<a href="#" id="signin" class="persona-button dark"><span>Sign in with your Email</span></a>
+	<a href="javascript:login()" id="signin" class="persona-button dark"><span>Sign in with your Email</span></a>
+
+    <form id="login-form" method="POST" action="{% url 'status' %}">
+      <input id="assertion-field" type="hidden" name="assertion" value="" />
+    </form>
+
+    <script>
+      function login() {
+          navigator.id.get(function(assertion) {
+              if (assertion) {
+                  var assertion_field = document.getElementById("assertion-field");
+                  assertion_field.value = assertion;
+                  var login_form = document.getElementById("login-form");
+                  login_form.submit();
+              }
+          });
+      }
+    </script>
 
 {% endif %}
 

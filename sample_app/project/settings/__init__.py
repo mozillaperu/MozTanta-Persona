@@ -145,3 +145,10 @@ LOGGING = {
         },
     }
 }
+
+SITE_DOMAIN = 'localhost'
+
+try:
+    from local_settings import *
+except:
+    pass
