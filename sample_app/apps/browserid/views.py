@@ -13,6 +13,7 @@ from django.views.generic import View
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 from django.contrib.auth import login
+from django.contrib.auth.backends import ModelBackend
 from django.conf import settings
 
 from browserid import settings as browserid_settings
@@ -132,7 +133,7 @@ class StatusView(View):
         return HttpResponseRedirect(homepage)
 
     def get_default_auth_backend(self):
-        return 'django.contrib.auth.backends.ModelBackend'
+        return ModelBackend
 
     def start_session_from_nonce(self, nonce):
         user.backend = self.get_default_auth_backend()
