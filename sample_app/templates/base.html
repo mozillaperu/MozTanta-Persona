@@ -23,14 +23,13 @@ function veryfyAssertion(assertion) {
 
     var domain = window.document.location.hostname;
 
-    document.location.href = window.location + assertion;
     $.ajax({
         type: "POST",
         url: domain + 'login',
         data: {assertion: assertion},
       	success: function(res, status, xhr) { window.location.reload(); },
       	error: function(xhr, status, err) { alert("Login failure: " + err); }
-    )};
+    });	
 }
 
 signinLink.onclick = function() {
