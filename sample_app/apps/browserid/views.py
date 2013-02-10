@@ -128,7 +128,7 @@ class StatusView(View):
         return self.error_response(aux)
 
     def redirect_home(self):
-        homepage = resolve('homepage')
+        homepage = reverse('homepage')
         return HttpResponseRedirect(homepage)
 
     def get_default_auth_backend(self):
