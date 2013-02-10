@@ -7,6 +7,8 @@ from django.http import HttpResponse
 from django.http import HttpResponseRedirect
 from django.http import HttpResponseBadRequest
 from django.core.urlresolvers import reverse
+from django.template import RequestContext
+from django.template import loader
 from django.views.generic import View
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
@@ -19,7 +21,7 @@ class HttpResponseConflict(HttpResponse):
     status = 409
 
 
-class CommonView(View):
+class StatusView(View):
 
     ASSERTION_KEY = 'assertion'
 
@@ -29,9 +31,6 @@ class CommonView(View):
 
     def get_assertion(self):
         return self.request.POST[self.ASSERTION_KEY]
-
-
-class StatusView(CommonView):
 
     def format_audience(self):
         site = Site.objects.get_current()
@@ -43,10 +42,9 @@ class StatusView(CommonView):
             "status": "failed",
             "reason": "Missing assertion"
         }
-        return HttpResponseBadRequest(
-            dumps(data, indent=4),
-            content_type='application/json'
-        )
+        t = loader.get_template('status.html')
+        c = RequestContext(self.request, data)
+        return HttpResponseBadRequest(t.render(c))
 
     def get_verifier_url(self):
         return browserid_settings.PERSONA_VERIFIER_URL
@@ -89,10 +87,9 @@ class StatusView(CommonView):
         return data['status'] == 'okay'
 
     def error_response(self, data):
-        return HttpResponseConflict(
-            dumps(data, indent=4),
-            content_type='application/json'
-        )
+        t = loader.get_template('status.html')
+        c = RequestContext(self.request, data)
+        return HttpResponseConflict(t.render(c))
 
     def create_nonce(self, data):
         user = User.objects.get(email=email)
@@ -109,11 +106,12 @@ class StatusView(CommonView):
         }
         return self.error_response(aux)
 
-    def successful_response(self, data):
-        return HttpResponse(
-            dumps(data, indent=4),
-            content_type='application/json'
-        )        
+    def redirect_home(self):
+        homepage = resolve('homepage')
+        return HttpResponseRedirect(homepage)
+
+    def start_session_from_nonce(self, nonce):
+        login(self.request, nonce.user)
 
     # HTTP Verb handlers
 
@@ -128,36 +126,9 @@ class StatusView(CommonView):
         if self.verification_was_successful(data):
             try:
                 self.create_nonce(data)
-                return self.successful_response(data)
+                self.start_session_from_nonce()
+                self.redirect_home()
             except User.DoesNotExist:
                 return self.nonce_error(data)
         else:
             return self.error_response(data)
-
-
-class LoginView(CommonView):
-
-    def redirect_home(self):
-        homepage = resolve('homepage')
-        return HttpResponseRedirect(homepage)
-
-    def get_nonce(self, assertion):
-        return Nonce.objects.get(assertion=assertion)
-
-    def start_session_from_nonce(self, nonce):
-        login(self.request, nonce.user)
-
-    # HTTP Verb handlers
-
-    def post(self, request):
-
-        if self.has_assertion():       
-            assertion = self.get_assertion()
-
-            try:
-                nonce = self.get_nonce(assertion)
-                self.start_session_from_nonce()
-            except Nonce.DoesNotExist:
-                pass
-
-        return self.redirect_home()
