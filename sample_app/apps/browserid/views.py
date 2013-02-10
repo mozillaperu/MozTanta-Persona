@@ -160,7 +160,7 @@ class StatusView(View):
                     self.start_session_from_nonce(nonce)
                 else:
                     self.start_session_from_email(data['email'])
-                self.redirect_home()
+                return self.redirect_home()
             except User.DoesNotExist:
                 return self.nonce_error(data)
         else:
