@@ -43,7 +43,6 @@ class StatusView(View):
         return domain
 
     def format_audience(self):
-        #site = Site.objects.get_current()
         protocol = 'https' if self.request.is_secure() else 'http'
         result = '{protocol}://{domain}'.format(
             protocol=protocol, 
@@ -55,7 +54,6 @@ class StatusView(View):
                 port=self.request.META['SERVER_PORT']
             )
 
-        print(result)
         return result
 
     def bad_request(self):
