@@ -25,7 +25,7 @@ function veryfyAssertion(assertion) {
 
     $.ajax({
         type: "POST",
-        url: domain + '{% url login %}',
+        url: domain + '{% url "login" %}',
         data: {assertion: assertion},
       	success: function(res, status, xhr) { window.location.reload(); },
       	error: function(xhr, status, err) { alert("Login failure: " + err); }
@@ -47,7 +47,7 @@ navigator.id.watch({
 	onlogout: function(){
 		$.ajax({
 	        type: "POST",
-	        url: domain + '{% url logout %}',
+	        url: domain + '{% url "logout" %}',
 	        success: function(res, status, xhr) { window.location.reload(); },
       		error: function(xhr, status, err) { alert("Logout failure: " + err); }
 	    });    	
