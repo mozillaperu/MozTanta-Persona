@@ -131,11 +131,16 @@ class StatusView(View):
         homepage = resolve('homepage')
         return HttpResponseRedirect(homepage)
 
+    def get_default_auth_backend(self):
+        return 'django.contrib.auth.backends.ModelBackened'
+
     def start_session_from_nonce(self, nonce):
+        user.backend = self.get_default_auth_backend()
         login(self.request, nonce.user)
 
     def start_session_from_email(self, email):
         user = User.objects.get(email=email)
+        user.backend = self.get_default_auth_backend()
         login(self.request, user)
 
     # HTTP Verb handlers
