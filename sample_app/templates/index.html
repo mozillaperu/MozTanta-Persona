@@ -4,9 +4,10 @@
 	<h1>MozTanta App</h1>
 {% if user.is_authenticated %} 
 	{{ user.email }}
-	<a href="#" id="signout" class="persona-button dark"><span>Sign out</span></a>
+	<a href="#" id="signout" class="persona-button dark"><span>Sign out</span></a>	
 {% else %} 
 	<a href="#" id="signin" class="persona-button dark"><span>Sign in with your Email</span></a>
+
 {% endif %}
 
 {% endblock %}
