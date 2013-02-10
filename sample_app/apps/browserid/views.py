@@ -13,7 +13,6 @@ from django.views.generic import View
 from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
 from django.contrib.auth import login
-from django.contrib.auth.backends import ModelBackend
 from django.conf import settings
 
 from browserid import settings as browserid_settings
