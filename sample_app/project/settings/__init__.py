@@ -146,9 +146,10 @@ LOGGING = {
     }
 }
 
-SITE_DOMAIN = 'localhost'
-
 try:
-    from local_settings import *
-except:
-    pass
+    LOCAL_SETTINGS
+except NameError:
+    try:
+        from local_settings import *
+    except ImportError:
+        pass
