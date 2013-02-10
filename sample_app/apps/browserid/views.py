@@ -133,10 +133,10 @@ class StatusView(View):
         return HttpResponseRedirect(homepage)
 
     def get_default_auth_backend(self):
-        return ModelBackend
+        return 'django.contrib.auth.backends.ModelBackend'
 
     def start_session_from_nonce(self, nonce):
-        user.backend = self.get_default_auth_backend()
+        nonce.user.backend = self.get_default_auth_backend()
         login(self.request, nonce.user)
 
     def start_session_from_email(self, email):
